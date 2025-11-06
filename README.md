@@ -102,6 +102,3 @@ pytest tests/test_api.py -v
 - API keys stored in environment variables
 - CORS configured for frontend domain
 
-## License
-
-MIT
