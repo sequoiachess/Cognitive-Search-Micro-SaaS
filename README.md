@@ -403,10 +403,6 @@ cognitive-search-micro-saas/
 └── README.md
 ```
 
-## License
-
-MIT
-
 ---
 
 ## Important Security Reminders
