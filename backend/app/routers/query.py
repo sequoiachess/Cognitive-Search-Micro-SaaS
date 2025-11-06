@@ -9,6 +9,7 @@ router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 settings = get_settings()
 
+# This line should use settings.GEMINI_API_KEY, not a hardcoded key
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
