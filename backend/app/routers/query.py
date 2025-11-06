@@ -9,7 +9,7 @@ router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 settings = get_settings()
 
-genai.configure(api_key=settings.GEMINI_API_KEY)
+genai.configure(api_key=settings.AIzaSyD-NGo1fw9ZWyNDE7M6XQIZGvgY5I0y14I)
 
 
 class QueryRequest(BaseModel):
@@ -97,4 +97,5 @@ You are the **Cognitive Search Engine** backend. Your primary function is to ana
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error querying Gemini API: {str(e)}"
+
         )
