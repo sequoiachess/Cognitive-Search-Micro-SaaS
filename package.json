@@ -10,10 +10,10 @@
     "axios": "^1.6.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "npm run start --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "test": "npm run test --prefix frontend",
+    "eject": "npm run eject --prefix frontend"
   },
   "eslintConfig": {
     "extends": [
