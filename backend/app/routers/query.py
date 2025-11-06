@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Request
 from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -9,7 +9,7 @@ router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 settings = get_settings()
 
-genai.configure(api_key=settings.AIzaSyD-NGo1fw9ZWyNDE7M6XQIZGvgY5I0y14I)
+genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
 class QueryRequest(BaseModel):
@@ -24,13 +24,13 @@ class QueryResponse(BaseModel):
 
 @router.post("/llm", response_model=QueryResponse)
 @limiter.limit("10/minute")
-async def query_llm(request: QueryRequest):
+async def query_llm(request: Request, query_request: QueryRequest):
     """
     Query the Gemini 2.0 Flash API with user input.
     Returns structured JSON response.
     """
     
-    if not request.user_query or len(request.user_query.strip()) == 0:
+    if not query_request.user_query or len(query_request.user_query.strip()) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Query cannot be empty"
@@ -60,7 +60,7 @@ You are the **Cognitive Search Engine** backend. Your primary function is to ana
 ```
 """
         
-        full_prompt = f"{system_prompt}\n\nUser Query: {request.user_query}"
+        full_prompt = f"{system_prompt}\n\nUser Query: {query_request.user_query}"
         
         response = model.generate_content(full_prompt)
         
@@ -88,7 +88,7 @@ You are the **Cognitive Search Engine** backend. Your primary function is to ana
             }
         
         return QueryResponse(
-            query=request.user_query,
+            query=query_request.user_query,
             response=parsed_response,
             model="gemini-2.0-flash-exp"
         )
@@ -97,5 +97,4 @@ You are the **Cognitive Search Engine** backend. Your primary function is to ana
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error querying Gemini API: {str(e)}"
-
         )
