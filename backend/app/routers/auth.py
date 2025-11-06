@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
@@ -42,7 +42,7 @@ def create_access_token(data: dict):
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/minute")
-async def register_user(user: UserRegister, db: Session = Depends(get_db)):
+async def register_user(request: Request, user: UserRegister, db: Session = Depends(get_db)):
     """Register a new user with email and password."""
     
     existing_user = db.query(User).filter(User.email == user.email).first()
