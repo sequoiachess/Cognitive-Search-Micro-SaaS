@@ -52,7 +52,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 **Replace `your_gemini_api_key_here` with your actual API key:**
 ```env
-GEMINI_API_KEY=AIzaSyD-NGo1fw9ZWyNDE7M6XQIZGvgY5I0y14I
+GEMINI_API_KEY=AIza******************************************
 ```
 
 ### Method 2: Using Terminal Commands
