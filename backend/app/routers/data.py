@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from pydantic import BaseModel
@@ -15,7 +15,7 @@ class IngestResponse(BaseModel):
 
 @router.post("/ingest", response_model=IngestResponse)
 @limiter.limit("10/minute")
-async def ingest_document(file: UploadFile = File(...)):
+async def ingest_document(request: Request, file: UploadFile = File(...)):
     """
     Accept PDF document upload for ingestion.
     This is a placeholder that logs the filename and returns success.
