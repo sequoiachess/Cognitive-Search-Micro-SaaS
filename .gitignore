@@ -1,0 +1,44 @@
+# ----------------------------------------
+# A. GLOBAL/OS FILES
+# ----------------------------------------
+# Ignore common OS files
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------
+# B. SENSITIVE/ENVIRONMENT FILES (CRITICAL!)
+# ----------------------------------------
+# Prevents committing the actual environment secrets file
+# Path: /project/workspace/backend/.env
+backend/.env
+
+# ----------------------------------------
+# C. NODE/FRONTEND SPECIFIC
+# ----------------------------------------
+# The massive dependency folder for React
+frontend/node_modules/
+
+# Build/Compiled files (React build output)
+frontend/build/
+frontend/dist/
+
+# CodeSandbox/IDE files
+.codesandbox/
+
+# NPM debug logs
+npm-debug.log*
+
+# ----------------------------------------
+# D. PYTHON/BACKEND SPECIFIC
+# ----------------------------------------
+# Virtual Environment
+backend/venv/
+backend/.venv/
+
+# Compiled Python files
+**/*.pyc
+__pycache__/
+
+# Database/Migration artifacts (if not managed by code)
+*.sqlite
+/migrations/
