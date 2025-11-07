@@ -24,6 +24,7 @@ function HomePage() {
     try {
       const result = await axios.post("/api/v1/query/llm", {
         user_query: query,
+        use_documents: true  // Enable document search
       });
       setResponse(result.data);
     } catch (err) {
@@ -40,7 +41,7 @@ function HomePage() {
     <div className="container">
       <div className="header">
         <h1 className="title">Cognitive Search</h1>
-        <p className="subtitle">Powered by Gemini 2.0 Flash</p>
+        <p className="subtitle">Powered by Gemini 2.0 Flash with RAG</p>
       </div>
 
       <div className="card">
@@ -93,6 +94,19 @@ function HomePage() {
                 </div>
               )}
 
+              {response.sources_used && response.sources_used.length > 0 && (
+                <div className="response-section">
+                  <p className="response-label">📄 Documents Used:</p>
+                  <ul className="source-list">
+                    {response.sources_used.map((source, index) => (
+                      <li key={index} style={{backgroundColor: '#dbeafe', fontWeight: '600'}}>
+                        {source}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {response.response.sources &&
                 response.response.sources.length > 0 && (
                   <div className="response-section">
@@ -121,6 +135,11 @@ function HomePage() {
 
               <div className="response-footer">
                 <p className="model-info">Model: {response.model}</p>
+                {response.sources_used && response.sources_used.length > 0 && (
+                  <p className="model-info" style={{color: '#2563eb', fontWeight: '500'}}>
+                    ✓ Using RAG with uploaded documents
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -131,5 +150,3 @@ function HomePage() {
     </div>
   );
 }
-
-export default HomePage;
