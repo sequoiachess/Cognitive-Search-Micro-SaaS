@@ -132,8 +132,8 @@ EOF
 #### 1. Clone and Configure Environment
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/cognitive-search-micro-saas.git
-cd cognitive-search-micro-saas
+git clone https://github.com/sequoiachess/Cognitive-Search-Micro-SaaS
+cd Cognitive-Search-Micro-SaaS
 
 # Navigate to backend directory
 cd backend
