@@ -60,3 +60,18 @@
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
+
+.progress-info {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: #dbeafe;
+  border-left: 4px solid #2563eb;
+  border-radius: 6px;
+}
+
+.progress-info p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
