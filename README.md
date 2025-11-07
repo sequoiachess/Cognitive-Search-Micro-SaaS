@@ -2,15 +2,39 @@
 
 # Cognitive Search Micro-SaaS
 
-A full-stack application that enables document ingestion and intelligent querying using Google's Gemini 2.0 Flash API.
+A full-stack application that enables document ingestion and intelligent querying using Google's Gemini 2.0 Flash API with RAG (Retrieval-Augmented Generation).
 
 ## Technology Stack
 
 - **Frontend:** React (no build tool required for CodeSandbox)
 - **Backend:** Python FastAPI
 - **LLM:** Google Gemini 2.0 Flash API
-- **Database:** PostgreSQL
+- **RAG:** Vector embeddings with semantic search
+- **Database:** PostgreSQL with pgvector extension
 - **Container:** Docker Compose
+
+## Features
+
+✅ **Document Processing**
+- Upload PDF documents
+- Automatic text extraction
+- Intelligent text chunking with overlap
+- Vector embeddings using Gemini
+
+✅ **Semantic Search**
+- RAG-powered query system
+- Searches uploaded documents for relevant context
+- Cosine similarity matching
+
+✅ **Context-Aware Responses**
+- Answers based on YOUR uploaded documents
+- Source attribution to specific documents
+- Falls back to general knowledge when needed
+
+✅ **Document Management**
+- List all uploaded documents
+- View document statistics
+- Delete documents and their embeddings
 
 ## Prerequisites
 
@@ -52,7 +76,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 **Replace `your_gemini_api_key_here` with your actual API key:**
 ```env
-GEMINI_API_KEY=AIza******************************************
+GEMINI_API_KEY=AIza***********************************
 ```
 
 ### Method 2: Using Terminal Commands
@@ -147,8 +171,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run migrations (create tables)
-python -c "from app.database import engine; from app.models import Base; Base.metadata.create_all(bind=engine)"
+# Initialize database with pgvector extension
+python init_db.py
 
 # Start backend server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -194,117 +218,264 @@ The frontend automatically proxies API requests to the backend via the configura
 - `POST /api/v1/auth/register` - Register new user
 
 ### Data Management
-- `POST /api/v1/data/ingest` - Upload PDF document
+- `POST /api/v1/data/ingest` - Upload and process PDF document
+- `GET /api/v1/data/documents` - List all uploaded documents
+- `DELETE /api/v1/data/documents/{id}` - Delete a document
 
 ### Query
-- `POST /api/v1/query/llm` - Query using Gemini 2.0 Flash
+- `POST /api/v1/query/llm` - Query using Gemini 2.0 Flash with RAG
 
 ## Testing the Application
 
-### Simple Queries (High Confidence Expected):
+### Step 1: Upload a Test Document
 
-#### 1. Basic Factual Query:
+First, you need to upload a PDF document. You can use any PDF, but here are some suggestions:
+
+**Option A: Create a Simple Test PDF**
+Create a text file and convert it to PDF, or use any existing PDF like:
+- Company handbook
+- Research paper
+- Product manual
+- Meeting notes
+- Technical documentation
+
+**Option B: Use a Sample Document**
+Download a sample PDF from the internet (e.g., a whitepaper, guide, or report)
+
+**Upload Process:**
+1. Go to the "Upload Document" section
+2. Select your PDF file
+3. Click "Upload Document"
+4. Wait for the success message showing:
+   - Document ingested successfully
+   - Number of chunks created (e.g., "chunks_created: 15")
+
+**⏱️ Note:** Processing may take 30-60 seconds depending on document size, as the system:
+- Extracts text from the PDF
+- Splits it into chunks
+- Creates embeddings for each chunk
+- Stores everything in the database
+
+---
+
+### Step 2: Query Your Uploaded Document
+
+Now you can ask questions about your uploaded document!
+
+#### Example Queries (Document-Specific):
+
+**If you uploaded a company handbook:**
+```
+What is the vacation policy mentioned in the document?
+```
+
+**If you uploaded a technical document:**
+```
+What are the main technical specifications described in the document?
+```
+
+**If you uploaded a research paper:**
+```
+What is the main hypothesis or conclusion of this research?
+```
+
+**If you uploaded meeting notes:**
+```
+What action items were discussed in the meeting?
+```
+
+**General document queries:**
+```
+Summarize the key points from the uploaded document
+```
+```
+What topics are covered in the document?
+```
+```
+Extract the main findings from the document
+```
+
+---
+
+### Step 3: Test Without Documents (General Knowledge)
+
+You can also test queries that don't rely on uploaded documents:
+
+#### Simple Queries (High Confidence Expected):
+
+**1. Basic Factual Query:**
 ```
 What is photosynthesis?
 ```
-**Expected:** High confidence, clear scientific explanation with educational sources.
+**Expected:** High confidence, clear scientific explanation, general knowledge sources.
 
-#### 2. Definition Query:
+**2. Definition Query:**
 ```
 Explain what machine learning is
 ```
-**Expected:** High confidence, comprehensive definition with technical sources.
+**Expected:** High confidence, comprehensive definition, technical documentation sources.
 
-#### 3. How-to Query:
+**3. How-to Query:**
 ```
 How does a blockchain work?
 ```
-**Expected:** High confidence, step-by-step explanation with technical documentation sources.
+**Expected:** High confidence, step-by-step explanation.
 
 ---
 
-### Medium Complexity Queries:
+#### Medium Complexity Queries:
 
-#### 4. Comparison Query:
+**4. Comparison Query:**
 ```
 What are the differences between React and Vue.js?
 ```
-**Expected:** Medium confidence, detailed comparison with framework documentation sources.
+**Expected:** Medium confidence, detailed comparison.
 
-#### 5. Business/Technical Query:
+**5. Business/Technical Query:**
 ```
 What are the best practices for API security?
 ```
-**Expected:** Medium confidence, comprehensive list with security guide sources.
+**Expected:** Medium confidence, comprehensive list.
 
-#### 6. Multi-aspect Query:
+**6. Multi-aspect Query:**
 ```
 Explain the benefits and challenges of cloud computing for small businesses
 ```
-**Expected:** Medium confidence, balanced analysis with business strategy sources.
+**Expected:** Medium confidence, balanced analysis.
 
 ---
 
-### Complex Queries (Lower Confidence Expected):
+#### Complex Queries (Lower Confidence Expected):
 
-#### 7. Analytical Query:
+**7. Analytical Query:**
 ```
 What factors should a startup consider when choosing between PostgreSQL and MongoDB?
 ```
-**Expected:** Medium to low confidence, detailed analysis with database comparison sources.
+**Expected:** Medium to low confidence, detailed analysis.
 
-#### 8. Strategic Query:
+**8. Strategic Query:**
 ```
 How can companies implement AI while maintaining data privacy?
 ```
-**Expected:** Medium confidence, strategic recommendations with policy and compliance sources.
+**Expected:** Medium confidence, strategic recommendations.
 
-#### 9. Speculative Query:
+**9. Speculative Query:**
 ```
 What will be the impact of quantum computing on cybersecurity in the next decade?
 ```
-**Expected:** Low confidence, forward-looking analysis with research paper sources.
+**Expected:** Low confidence, forward-looking analysis.
 
 ---
 
-### Expected Response Format:
+### Understanding the Response
+
+#### When Documents Are Used (RAG Active):
 ```json
 {
-  "answer": "Photosynthesis is the process by which plants convert light energy into chemical energy. During this process, plants use sunlight, water, and carbon dioxide to produce glucose and oxygen. This occurs primarily in the chloroplasts of plant cells, where chlorophyll absorbs light energy. The process consists of two main stages: the light-dependent reactions and the Calvin cycle...",
-  "confidence": "high",
-  "sources": [
-    "Plant Biology Fundamentals 2024",
-    "Cellular Processes in Botany - Chapter 3",
-    "Photosynthesis Research Handbook Vol. 12"
-  ],
-  "follow_up_questions": [
-    "What role does chlorophyll play in photosynthesis?",
-    "How do different wavelengths of light affect photosynthesis efficiency?"
-  ]
+  "query": "What is the vacation policy?",
+  "response": {
+    "answer": "According to the Employee Handbook, employees receive 15 days of paid vacation annually...",
+    "confidence": "high",
+    "sources": ["Company Handbook 2024", "HR Policy Document"],
+    "follow_up_questions": [
+      "How do vacation days accrue over time?",
+      "Can unused vacation days be carried over?"
+    ]
+  },
+  "model": "gemini-2.0-flash-exp",
+  "sources_used": ["company_handbook.pdf"]  // ← Your uploaded document!
 }
 ```
 
+**Look for:**
+- 📄 **"Documents Used"** section showing your PDF filename (highlighted in blue)
+- ✓ **"Using RAG with uploaded documents"** indicator at the bottom
+- **Higher confidence** when answering from your documents
+
+#### When No Relevant Documents Found:
+```json
+{
+  "query": "What is photosynthesis?",
+  "response": {
+    "answer": "Photosynthesis is the process by which plants convert light energy...",
+    "confidence": "high",
+    "sources": ["Plant Biology Fundamentals", "Cellular Processes Guide"],
+    "follow_up_questions": [...]
+  },
+  "model": "gemini-2.0-flash-exp",
+  "sources_used": []  // ← No documents used, general knowledge
+}
+```
+
+---
+
 ### What to Look For in Responses:
 
-✅ **Good responses should have:**
-- A detailed answer (minimum 50 words)
-- Confidence level appropriate to query complexity (high/medium/low)
-- 2-3 plausible, specific source titles (e.g., "Database Design Guide 2024" or "Cloud Architecture Best Practices Vol. 3")
-- 2 relevant follow-up questions that extend or clarify the topic
+✅ **RAG-Powered Responses (with uploaded documents):**
+- Your PDF filename appears in "📄 Documents Used"
+- Answer references specific content from your document
+- Higher confidence (usually "high")
+- Sources include your actual document names
+- More accurate and specific to your content
 
-✅ **Confidence Levels:**
-- **High:** Simple factual queries, definitions, well-established concepts
-- **Medium:** Comparisons, synthesis of multiple concepts, technical best practices
-- **Low:** Speculative queries, future predictions, highly context-dependent questions
+✅ **General Knowledge Responses:**
+- No documents listed in "Documents Used"
+- Answer from Gemini's training data
+- Confidence varies by query complexity
+- Sources are AI-generated placeholders
+
+✅ **All responses should have:**
+- A detailed answer (minimum 50 words)
+- Confidence level (high/medium/low)
+- 2-3 source references
+- 2 relevant follow-up questions
 
 ---
 
 ### Testing PDF Upload:
 
-1. Create or download any PDF file
-2. Use the "Upload Document" section
-3. You should see a success message with filename and size
-4. **Note:** This is currently a placeholder - the PDF content is not processed yet
+**Test the upload feature:**
+1. Select a PDF file (any PDF document)
+2. Upload it through the "Upload Document" section
+3. You should see:
+   - Success message: "Document ingested successfully"
+   - Filename and file size
+   - Number of chunks created (e.g., 15 chunks)
+   - Document ID
+
+**Verify it worked:**
+- Ask a question about the content
+- Check if your filename appears in "Documents Used"
+- The answer should reference content from your PDF
+
+---
+
+## How RAG Works in This Application
+
+### The RAG Pipeline:
+
+1. **Document Upload** → PDF is uploaded
+2. **Text Extraction** → Extract text from PDF using PyPDF2
+3. **Chunking** → Split text into overlapping chunks (~1000 chars each)
+4. **Embedding** → Create vector embeddings using Gemini's embedding model
+5. **Storage** → Store chunks and embeddings in PostgreSQL
+6. **Query Processing** → When user asks a question:
+   - Create embedding for the query
+   - Search for similar chunks using cosine similarity
+   - Retrieve top 3 most relevant chunks
+   - Include chunks in Gemini prompt as context
+7. **Response Generation** → Gemini answers using document context
+8. **Source Attribution** → System tracks which documents were used
+
+### Benefits:
+
+- 📄 **Accurate answers** from YOUR documents
+- 🎯 **Relevant context** automatically found
+- 🔍 **Semantic search** understands meaning, not just keywords
+- 📊 **Source tracking** shows which documents were used
+- 🔄 **Falls back** to general knowledge when needed
+
+---
 
 ## Testing
 ```bash
@@ -316,7 +487,7 @@ pytest tests/test_api.py -v
 
 - **NEVER commit your `.env` file to GitHub** - it contains your API keys
 - The `.gitignore` file is configured to exclude `.env` files
-- Rate limiting implemented (10 requests per minute per IP)
+- Rate limiting implemented (5 requests per minute per IP for document processing)
 - Passwords hashed with bcrypt
 - API keys stored in environment variables only
 - CORS configured for frontend domain
@@ -326,7 +497,7 @@ pytest tests/test_api.py -v
 1. Build Docker images
 2. Push to Google Container Registry
 3. Deploy to Cloud Run
-4. Configure Cloud SQL for PostgreSQL
+4. Configure Cloud SQL for PostgreSQL with pgvector extension
 5. Set environment variables in Cloud Run (including your Gemini API key)
 6. **Never hardcode API keys in your source code**
 
@@ -358,10 +529,27 @@ cat .env     # Should display your environment variables
 - Make sure your virtual environment is activated
 - Check that the `.env` file exists and has all required variables
 - Verify you're in the `backend/` directory when running uvicorn
+- Run `python init_db.py` to initialize the database with pgvector
 
 ### Frontend can't connect to Backend
 - Verify both servers are running (backend on :8000, frontend on :3000)
 - Check the proxy setting in `frontend/package.json` points to `http://localhost:8000`
+
+### Document upload fails or takes too long
+- **Rate Limit:** Gemini API has embedding rate limits (15 RPM free tier)
+- **Solution:** Upload smaller documents first, or wait between uploads
+- **Large PDFs:** May take 1-2 minutes to process due to rate limiting
+- Check backend logs for specific errors
+
+### No documents found in queries
+- Verify documents were uploaded successfully (check "chunks_created" in response)
+- Run `python init_db.py` to ensure pgvector extension is installed
+- Check database connection is working
+
+### Rate Limit (429) Errors
+- Free tier limits: 15 requests per minute, 1,500 per day
+- Wait 5-10 minutes between large batches of requests
+- Consider upgrading to paid tier for higher limits
 
 ## Environment Variables Reference
 
@@ -386,22 +574,41 @@ cognitive-search-micro-saas/
 ├── backend/
 │   ├── .env                    ← PUT YOUR API KEY HERE
 │   ├── .env.example            ← Template (don't edit this)
-│   ├── requirements.txt
+│   ├── requirements.txt        ← Python dependencies (includes RAG libs)
+│   ├── init_db.py              ← Database initialization script
 │   ├── app/
 │   │   ├── config.py           ← Reads .env file (don't edit)
-│   │   ├── main.py
+│   │   ├── database.py         ← Database connection
+│   │   ├── models.py           ← Database models (User, Document, DocumentChunk)
+│   │   ├── main.py             ← FastAPI app
+│   │   ├── rag_utils.py        ← RAG utility functions (NEW)
 │   │   └── routers/
-│   │       ├── query.py        ← Uses API key from .env (don't edit)
-│   │       ├── auth.py
-│   │       └── data.py
+│   │       ├── query.py        ← RAG-powered query endpoint (UPDATED)
+│   │       ├── auth.py         ← User authentication
+│   │       └── data.py         ← Document upload & processing (UPDATED)
 │   └── tests/
 ├── frontend/
 │   ├── src/
+│   │   ├── pages/
+│   │   │   └── homepage.jsx    ← Main UI (shows RAG status)
+│   │   └── components/
+│   │       └── FileUpload.jsx  ← Document upload component
 │   ├── public/
 │   └── package.json
 ├── docker-compose.yml
 └── README.md
 ```
+
+## Key Dependencies Added for RAG
+```
+pypdf2==3.0.1                    # PDF text extraction
+pgvector==0.2.4                  # PostgreSQL vector extension
+sentence-transformers==2.2.2     # Text embeddings (fallback)
+```
+
+## License
+
+MIT
 
 ---
 
@@ -424,9 +631,80 @@ cognitive-search-micro-saas/
 - [ ] Add your API key to `backend/.env` (line: `GEMINI_API_KEY=your_key_here`)
 - [ ] Verify `.env` file exists: `ls backend/.env`
 - [ ] Install backend dependencies: `pip install -r backend/requirements.txt`
+- [ ] Initialize database: `python backend/init_db.py`
 - [ ] Install frontend dependencies: `npm install` (in frontend directory)
+- [ ] Start database: `docker-compose up -d`
 - [ ] Start backend server (Terminal 1)
 - [ ] Start frontend server (Terminal 2)
-- [ ] Test with Query #1: "What is photosynthesis?"
-- [ ] Test with Query #4: "What are the differences between React and Vue.js?"
-- [ ] Test with Query #9: "What will be the impact of quantum computing on cybersecurity in the next decade?"
+- [ ] **Upload a test PDF document** (wait for "chunks_created" confirmation)
+- [ ] Test with document-specific query: "Summarize the key points from the document"
+- [ ] Verify your PDF filename appears in "📄 Documents Used"
+- [ ] Test with general query: "What is photosynthesis?" (should use general knowledge)
+
+---
+
+## RAG System Architecture
+```
+┌─────────────┐
+│   User      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│         Frontend (React)            │
+│  - Upload PDF                       │
+│  - Submit Query                     │
+│  - Display Results with Sources     │
+└──────┬──────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│      Backend API (FastAPI)          │
+│                                     │
+│  Upload Pipeline:                  │
+│  1. Extract text from PDF          │
+│  2. Chunk text (1000 chars)        │
+│  3. Create embeddings              │
+│  4. Store in database              │
+│                                     │
+│  Query Pipeline:                   │
+│  1. Create query embedding         │
+│  2. Search for similar chunks      │
+│  3. Retrieve top 3 matches         │
+│  4. Add context to prompt          │
+│  5. Generate response              │
+└──────┬──────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│  PostgreSQL + pgvector              │
+│  - Documents table                  │
+│  - DocumentChunks table             │
+│  - Vector embeddings                │
+└─────────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│   Google Gemini API                 │
+│  - text-embedding-004 (embeddings) │
+│  - gemini-2.0-flash-exp (answers)  │
+└─────────────────────────────────────┘
+```
+
+## What Makes This a Complete Micro-SaaS
+
+✅ **Full-Stack Application** - Frontend + Backend + Database
+✅ **AI-Powered** - Uses state-of-the-art LLM (Gemini 2.0 Flash)
+✅ **RAG Implementation** - Searches and uses your own documents
+✅ **Vector Search** - Semantic similarity matching
+✅ **User Authentication** - Secure user registration
+✅ **Document Management** - Upload, list, delete documents
+✅ **Rate Limiting** - Production-ready API protection
+✅ **Error Handling** - Graceful degradation and retry logic
+✅ **Source Attribution** - Tracks which documents were used
+✅ **Responsive UI** - Clean, modern interface
+✅ **Scalable Architecture** - Ready for production deployment
+
+---
+
+**Ready to test?** Upload a document and start querying! 🚀
